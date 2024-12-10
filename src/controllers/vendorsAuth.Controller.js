@@ -154,7 +154,7 @@ class vendorsAuth {
           { email },
           process.env.FORGOT_PASSWORD_SECRET,
           {
-            expiresIn: "10s",
+            expiresIn: "10m",
             algorithm: "HS256",
           }
         );
@@ -197,9 +197,9 @@ class vendorsAuth {
       }
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        res.status(401).json({ valid: false, message: "Token has expired" });
+         return res.status(401).json({ valid: false, message: "Token has expired" });
       } else {
-        res.status(400).json({ valid: false, message: "Invalid token" });
+        return res.status(400).json({ valid: false, message: "Invalid token" });
       }
     }
   }

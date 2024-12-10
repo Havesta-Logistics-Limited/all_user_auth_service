@@ -17,6 +17,8 @@ app.use(
       "http://localhost:5173",
       "http://localhost:8080",
       "https://havestav1.netlify.app",
+      "https://harvesta-home-web-v1.onrender.com",
+      "https://client-portal-v1.onrender.com"
       // "https://nginx-configuration-4f3p.onrender.com", 
     ],
     credentials: true,
