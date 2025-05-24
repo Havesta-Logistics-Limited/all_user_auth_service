@@ -22,7 +22,7 @@ app.use(
       // "https://nginx-configuration-4f3p.onrender.com", 
     ],
     credentials: true,
-    methods: ["GET", "POST", "DELETE", "PUT"],
+    methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
 
   })
 );

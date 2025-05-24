@@ -8,8 +8,10 @@ const bcrypt = require("bcryptjs");
 require("dotenv").config();
 const sendEmail = require("../config/mailer");
 const randomString = require("../helpers/randomString");
+const VendorProfile = require("./getVendorProfile.Controller")
 
 const randomPassword = randomString();
+
 
 class vendorsAuth {
   static async signup(req, res) {
@@ -89,9 +91,15 @@ class vendorsAuth {
     }
   }
 
+  // ---------------------------------------------------- SIGNIN ------------------------------------------------------------
+  
+  
   static async signin(req, res) {
     try {
       const { email, password } = req.body;
+      const vendorData = await VendorProfile.getProfile(email)
+
+      
 
       const vendor = await vendorModel.findOne({
         where: { email: email },
@@ -101,7 +109,7 @@ class vendorsAuth {
       if (!vendor) {
         return res
           .status(400)
-          .json({ success: "false", message: "Incorrect email or password" });
+          .json({ success: false, message: "Incorrect email or password" });
       }
 
       const valid = await bcrypt.compare(password, vendor.password);
@@ -109,7 +117,7 @@ class vendorsAuth {
       if (!valid) {
         return res
           .status(400)
-          .json({ success: "false", message: "Incorrect email or password" });
+          .json({ success: false, message: "Incorrect email or password" });
       }
 
       const PUID = dataValues.public_unique_Id;
@@ -135,13 +143,15 @@ class vendorsAuth {
       //   secure: true,
       //   sameSite: "none",
       // });
-
-      return res.status(200).json({ success: "true" });
+      console.log(vendorData, "this is vendor data")
+      return res.status(200).json({ success: true, message:"Signin successful", data:vendorData });
     } catch (error) {
       return res.status(500).json({ error });
     }
   }
 
+  // ---------------------------------------------- FORGOT PASSWORD ------------------------------------------------------
+  
   static async forgotPassword(req, res) {
     try {
       const { email } = req.body;
@@ -184,6 +194,7 @@ class vendorsAuth {
     }
   }
 
+  // ---------------------------------------------- VALIDATE RESET TOKEN ---------------------------------------------------
   static async validateResetToken(req, res) {
     const { token } = req.params;
     try {
@@ -204,6 +215,8 @@ class vendorsAuth {
     }
   }
 
+
+  // -------------------------------------------------- RESET PASSWORD ------------------------------------------------------
   static async resetPassword(req, res) {
     const t = await sequelize.transaction();
     const token = req.params.token;
