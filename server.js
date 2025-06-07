@@ -9,6 +9,7 @@ const colors = require("colors");
 const cookieParser = require("cookie-parser");
 const ridersAuthRoute = require("./src/routes/ridersAuth.routes");
 const vendorsAuthRoute = require("./src/routes/vendorsAuth.routes");
+const marketplaceRoute = require("./src/routes/marketplace.routes")
 const helmet = require("helmet");
 
 app.use(
@@ -55,6 +56,8 @@ const startServer = async () => {
 
 app.use("/auth_service/api/riders", ridersAuthRoute);
 app.use("/auth_service/api/vendors", vendorsAuthRoute);
+app.use("/marketplace_service/api/vendors", marketplaceRoute);
+
 
 
 
