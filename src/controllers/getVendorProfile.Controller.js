@@ -22,7 +22,7 @@ class VendorProfile {
               const {dataValues} = vendor
               console.log(dataValues, "respojnse")
 
-            return res.status(200).json(dataValues );
+            return res.status(200).json(dataValues);
         } catch(err) {
             console.log(err, "error here")
         }

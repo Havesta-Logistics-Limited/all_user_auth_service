@@ -10,7 +10,7 @@ const responseHandler = {
     res.status(200).json({
       status: "success",
       data: data,
-      dataCount: count,
+      // dataCount: count,
     });
   },
 
