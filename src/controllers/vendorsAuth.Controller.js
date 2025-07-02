@@ -124,7 +124,7 @@ class vendorsAuth {
       const accessToken = JWT.sign(
         { PUID },
         process.env.ACCESS_TOKEN_SECRET_KEY,
-        { algorithm: "HS256", expiresIn: "1d" }
+        { algorithm: "HS256", expiresIn: "10d" }
       );
 
       const accessTokenCookie = res.cookie("accessToken", accessToken, {
@@ -245,6 +245,20 @@ class vendorsAuth {
     }
   }
 
+   // -------------------------------------------------- SET PROFILE PICTURE ------------------------------------------------------
+
+   static async updateProfilePicture(req,res) {
+    const {cloudinaryUrl} = req.body;
+    const PUID = res.locals.user
+
+     const updateProfilePic = await vendorModel.update(
+          { profile_photo: cloudinaryUrl},
+          {
+            where: { public_unique_Id:PUID}
+          }
+        );
+
+   }
 }
 
 module.exports = vendorsAuth;
