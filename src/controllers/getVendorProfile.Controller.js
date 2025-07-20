@@ -11,9 +11,7 @@ const randomString = require("../helpers/randomString");
 
 class VendorProfile {
   static async getProfile(req, res) {
-    console.log("just fetched againnnnnnnnnnnnn");
     try {
-      console.log(res.locals.user, "res user");
       const vendor = await vendorModel.findOne({
         where: { public_unique_Id: res.locals.user },
       });
@@ -28,7 +26,6 @@ class VendorProfile {
   }
 
   static async updateProfile(req, res) {
-    console.log(req.body, "from update");
     const userid = req.params.id;
     const updatedFields = req.body;
     try {
@@ -44,7 +41,6 @@ class VendorProfile {
   }
 
   static async updateProfilePicture(req, res) {
-    console.log(req.body, "from update");
     const {cloudinaryUrl, public_id} = req.body;
     try {
       const profile = await vendorModel.update(
