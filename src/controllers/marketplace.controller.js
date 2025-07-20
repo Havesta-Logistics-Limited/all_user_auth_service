@@ -11,7 +11,6 @@ const randomString = require("../helpers/randomString");
 
 class Marketplace {
   static async getVendors(req, res) {
-    console.log("just fetched againnnnnnnnnnnnn");
     try {
       // console.log(res.locals.user, "res user")
       const vendors = await vendorModel.findAll({
@@ -19,7 +18,7 @@ class Marketplace {
           exclude: ["password"],
         },
       });
-      console.log(vendors[0], "vendi");
+      
       if (vendors) {
         const data = vendors.map((vendor) => vendor.dataValues);
         console.log(data, 'ftatadytsafydgwjhnfnrwge');
@@ -38,7 +37,7 @@ class Marketplace {
   }
 
   static async updateProfile(req, res) {
-    console.log(req.body, "from update");
+   
     const userid = req.params.id;
     const updatedFields = req.body;
     try {
