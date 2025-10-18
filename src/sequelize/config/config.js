@@ -16,7 +16,9 @@ module.exports = {
       }
     },
     pool:{
-      max:10,
+      max:20,
+      min:5,
+      idle:10000,
       acquire:30000
     }
   },
