@@ -14,6 +14,7 @@ class VendorProfile {
     try {
       const vendor = await vendorModel.findOne({
         where: { public_unique_Id: res.locals.user },
+        attributes: { exclude: ["id", "password"] },
       });
 
       const { dataValues } = vendor;

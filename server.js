@@ -55,8 +55,6 @@ const server = http.createServer(app);
 
     });
 
-
-
     const shutdown = async (signal) => {
   console.log(`\nReceived ${signal}. Closing server...`);
 

@@ -8,10 +8,9 @@ const bcrypt = require("bcryptjs");
 require("dotenv").config();
 const sendEmail = require("../config/mailer");
 const randomString = require("../helpers/randomString");
-const VendorProfile = require("./getVendorProfile.Controller")
+const VendorProfile = require("./getVendorProfile.Controller");
 
 const randomPassword = randomString();
-
 
 class vendorsAuth {
   static async signup(req, res) {
@@ -92,15 +91,11 @@ class vendorsAuth {
   }
 
   // ---------------------------------------------------- SIGNIN ------------------------------------------------------------
-  
-  
+
   static async signin(req, res) {
     try {
       const { email, password } = req.body;
-      const vendorData = await VendorProfile.getProfile(email)
-
-      
-
+      const vendorData = await VendorProfile.getProfile(email);
       const vendor = await vendorModel.findOne({
         where: { email: email },
       });
@@ -128,7 +123,7 @@ class vendorsAuth {
       );
 
       const accessTokenCookie = res.cookie("accessToken", accessToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: true,
         sameSite: "none",
       });
@@ -143,15 +138,25 @@ class vendorsAuth {
       //   secure: true,
       //   sameSite: "none",
       // });
-      console.log(vendorData, "this is vendor data")
-      return res.status(200).json({ success: true, message:"Signin successful", data:vendorData });
+      console.log(dataValues, "datavalues");
+      const dataValuesCopy = { ...dataValues };
+      delete dataValuesCopy.password;
+      delete dataValuesCopy.id;
+      console.log(dataValuesCopy, "this is vendor data");
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message: "Signin successful",
+          data: dataValuesCopy,
+        });
     } catch (error) {
       return res.status(500).json({ error });
     }
   }
 
   // ---------------------------------------------- FORGOT PASSWORD ------------------------------------------------------
-  
+
   static async forgotPassword(req, res) {
     try {
       const { email } = req.body;
@@ -179,13 +184,11 @@ class vendorsAuth {
         });
         return res.status(200).json({ success: true, message: "Email sent" });
       } else if (user === null) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message:
-              "Email is not associated with an account, enter a correct email",
-          });
+        return res.status(400).json({
+          success: false,
+          message:
+            "Email is not associated with an account, enter a correct email",
+        });
       }
     } catch (err) {
       console.log(err, "err");
@@ -208,13 +211,14 @@ class vendorsAuth {
       }
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-         return res.status(401).json({ valid: false, message: "Token has expired" });
+        return res
+          .status(401)
+          .json({ valid: false, message: "Token has expired" });
       } else {
         return res.status(400).json({ valid: false, message: "Invalid token" });
       }
     }
   }
-
 
   // -------------------------------------------------- RESET PASSWORD ------------------------------------------------------
   static async resetPassword(req, res) {
@@ -222,43 +226,49 @@ class vendorsAuth {
     const token = req.params.token;
     const { email } = JWT.verify(token, process.env.FORGOT_PASSWORD_SECRET);
     const { newPassword, confirmPassword } = req.body;
-    
+
     try {
       if (newPassword === confirmPassword) {
-        const hashedPassword = await bcrypt.hash(newPassword, 12)
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
         const updatePassword = await vendorModel.update(
-          { password: hashedPassword},
+          { password: hashedPassword },
           {
             where: { email: email },
             transaction: t,
           }
         );
-      } else return res.status(400).json({success:false, message: "passwords do not match"})
+      } else
+        return res
+          .status(400)
+          .json({ success: false, message: "passwords do not match" });
 
       await t.commit();
-      return res.status(200).json({success:true, message:"Password change successful"})
+      return res
+        .status(200)
+        .json({ success: true, message: "Password change successful" });
     } catch (error) {
       await t.rollback();
-      console.log(error, "error")
+      console.log(error, "error");
 
-      return res.status(500).json({success:false, message:"Password change unsuccessful"})
+      return res
+        .status(500)
+        .json({ success: false, message: "Password change unsuccessful" });
     }
   }
 
-   // -------------------------------------------------- SET PROFILE PICTURE ------------------------------------------------------
+  // -------------------------------------------------- SET PROFILE PICTURE ------------------------------------------------------
 
-   static async updateProfilePicture(req,res) {
-    const {cloudinaryUrl} = req.body;
-    const PUID = res.locals.user
+  static async updateProfilePicture(req, res) {
+    const { cloudinaryUrl } = req.body;
+    const PUID = res.locals.user;
 
-     const updateProfilePic = await vendorModel.update(
-          { profile_photo: cloudinaryUrl},
-          {
-            where: { public_unique_Id:PUID}
-          }
-        );
-
-   }
+    const updateProfilePic = await vendorModel.update(
+      { profile_photo: cloudinaryUrl },
+      {
+        where: { public_unique_Id: PUID },
+      }
+    );
+  }
 }
 
 module.exports = vendorsAuth;
