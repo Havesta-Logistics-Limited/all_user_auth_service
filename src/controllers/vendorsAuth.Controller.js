@@ -95,11 +95,11 @@ class vendorsAuth {
   static async signin(req, res) {
     try {
       const { email, password } = req.body;
-      const vendorData = await VendorProfile.getProfile(email);
+      // const vendorData = await VendorProfile.getProfile(email);
+      
       const vendor = await vendorModel.findOne({
         where: { email: email },
       });
-      const { dataValues } = vendor;
 
       if (!vendor) {
         return res
@@ -114,6 +114,9 @@ class vendorsAuth {
           .status(400)
           .json({ success: false, message: "Incorrect email or password" });
       }
+
+      const { dataValues } = vendor;
+
 
       const PUID = dataValues.public_unique_Id;
       const accessToken = JWT.sign(
@@ -143,13 +146,11 @@ class vendorsAuth {
       delete dataValuesCopy.password;
       delete dataValuesCopy.id;
       console.log(dataValuesCopy, "this is vendor data");
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "Signin successful",
-          data: dataValuesCopy,
-        });
+      return res.status(200).json({
+        success: true,
+        message: "Signin successful",
+        data: dataValuesCopy,
+      });
     } catch (error) {
       return res.status(500).json({ error });
     }
@@ -200,6 +201,7 @@ class vendorsAuth {
   // ---------------------------------------------- VALIDATE RESET TOKEN ---------------------------------------------------
   static async validateResetToken(req, res) {
     const { token } = req.params;
+    console.log(token, "token")
     try {
       const isTokenValid = JWT.verify(
         token,
@@ -269,6 +271,105 @@ class vendorsAuth {
       }
     );
   }
+
+  // -------------------------------------------------- CHANGE PASSWORD ------------------------------------------------------
+
+  static async changePassword(req, res) {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const PUID = res.locals.user;
+    const t = await sequelize.transaction();
+
+    try {
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+        //check if password matches the constraint
+      if (!passwordRegex.test(newPassword)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+        });
+      }
+      const user = await vendorModel.findOne({
+        where: { public_unique_Id: PUID },
+        attributes: ["email", "password"], // only fetch these columns
+        raw: true,
+        transaction: t,
+      });
+
+      //check if saved password matches the current password
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Current password is incorrect." });
+      }
+
+      if (newPassword === confirmPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        const updatePassword = await vendorModel.update(
+          { password: hashedPassword },
+          {
+            where: { public_unique_Id: PUID },
+            transaction: t,
+          }
+        );
+      } else {
+        return res
+          .status(400)
+          .json({ success: false, message: "passwords do not match" });
+      }
+
+      await t.commit();
+      return res
+        .status(200)
+        .json({ success: true, message: "Password change successful" });
+    } catch (error) {
+      await t.rollback();
+      console.log(error, "error");
+      console.log(error.name, "error.errors");
+
+      const validationType = error.errors.map((err) => err.type);
+      console.log(validationType[0], "this is type");
+      if (
+        error.name === "SequelizeValidationError" ||
+        validationType[0] === "Validation error"
+      ) {
+        const validationErrors = error.errors.map((err) => err.message);
+        console.log(validationErrors, "val errrorororororo");
+        return res.status(400).json({
+          SUCCESS: false,
+          MESSAGE: validationErrors[0],
+          ERROR_TYPE: "Validation error",
+        });
+      }
+
+      if (error.name === "SequelizeUniqueConstraintError") {
+        const uniqueError = error.errors.map((err) => err.message);
+        return res.status(409).json({
+          SUCCESS: false,
+          MESSAGE: uniqueError[0],
+          ERROR_TYPE: "unique constraint error",
+        });
+      }
+
+      // return res.status(500).json({
+      //   SUCCESS: false,
+      //   MESSAGE: "An unexpected error occurred",
+      //   error: error.message,
+      // });
+
+      return res
+        .status(500)
+        .json({ success: false, message: "Something went wrong" });
+    }
+  }
+
+    // -------------------------------------------------- CHANGE PASSWORD ------------------------------------------------------
+
+    static async logout(req,res) {
+
+    }
 }
 
 module.exports = vendorsAuth;
