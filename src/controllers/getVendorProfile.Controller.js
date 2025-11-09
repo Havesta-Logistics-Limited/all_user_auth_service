@@ -11,6 +11,7 @@ const randomString = require("../helpers/randomString");
 
 class VendorProfile {
   static async getProfile(req, res) {
+    console.log(res.locals,"res.locals")
     try {
       const vendor = await vendorModel.findOne({
         where: { public_unique_Id: res.locals.user },

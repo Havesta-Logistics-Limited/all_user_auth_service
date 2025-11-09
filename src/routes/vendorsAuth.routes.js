@@ -17,6 +17,8 @@ router.post("/reset_password/:token", (req,res) => vendorAuth.resetPassword(req,
 router.get("/get_profile", isAuth, (req,res) => VendorProfile.getProfile(req,res))
 router.patch("/update_profile", isAuth, (req,res) => VendorProfile.updateProfile(req,res))
 router.patch("/update_profile_picture", isAuth, (req,res) => VendorProfile.updateProfilePicture(req,res))
+router.patch("/change_password", isAuth, (req,res) => vendorAuth.changePassword(req,res))
+
 
 
 module.exports = router;
