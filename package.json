@@ -1,6 +1,7 @@
 {
   "name": "riders",
   "version": "1.0.0",
+  "type": "module",
   "description": "Havesta riders microservice",
   "main": "server.js",
   "scripts": {
