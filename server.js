@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import http from "http";
 import cors from "cors";
@@ -9,25 +11,14 @@ import helmet from "helmet";
 import models from "./src/sequelize/models/index.js";
 const { sequelize } = models;
 
+import db_config from "./src/sequelize/config/config.js";
 import customerRoutes from "./src/routes/customer.routes.js";
 import ridersAuthRoute from "./src/routes/ridersAuth.routes.js";
 import vendorsAuthRoute from "./src/routes/vendorsAuth.routes.js";
 import marketplaceRoute from "./src/routes/marketplace.routes.js";
+import logoutRoute from "./src/routes/logout.routes.js";
 
-dotenv.config();
 const app = express();
-const { sequelize } = require("./src/sequelize/models");
-const db_config = require("./src/sequelize/config/config");
-const cors = require("cors");
-const colors = require("colors");
-const cookieParser = require("cookie-parser");
-const ridersAuthRoute = require("./src/routes/ridersAuth.routes");
-const vendorsAuthRoute = require("./src/routes/vendorsAuth.routes");
-const marketplaceRoute = require("./src/routes/marketplace.routes");
-const logoutRoute = require("./src/routes/logout.routes");
-const customerRoute = require("./src/routes/customerAuth.routes");
-const helmet = require("helmet");
-// const googlePassport = require("./src/controllers/customerAuth/googleAuth/googleStrategy")
 
 app.use(
   cors({
@@ -37,7 +28,6 @@ app.use(
       "https://havestav1.netlify.app",
       "https://harvesta-home-web-v1.onrender.com",
       "https://client-portal-v1.onrender.com",
-      // "https://nginx-configuration-4f3p.onrender.com",
     ],
     credentials: true,
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
@@ -45,21 +35,16 @@ app.use(
 );
 
 app.use(cookieParser());
-
 app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
-// app.use(googlePassport.initialize());
 
 const port = process.env.PORT || 4040;
-
 const server = http.createServer(app);
 
 server.listen(port, async () => {
-  console.log(colors.random("Application listening on port 4040"));
+  console.log(colors.green(`Application listening on port ${port}`));
   try {
     await sequelize.authenticate();
-    // await initializeRedisClient();
     console.log("Database connection established successfully.");
   } catch (error) {
     console.error("Unable to connect to the database:", error.message);
@@ -68,13 +53,10 @@ server.listen(port, async () => {
 
 const shutdown = async (signal) => {
   console.log(`\nReceived ${signal}. Closing server...`);
-
-  // Stop accepting new requests
   server.close(async () => {
     console.log("HTTP server closed.");
-
     try {
-      await sequelize.close(); // Gracefully close Sequelize pool
+      await sequelize.close();
       console.log("Sequelize connection pool closed.");
       process.exit(0);
     } catch (err) {
@@ -84,12 +66,12 @@ const shutdown = async (signal) => {
   });
 };
 
-process.on("SIGINT", () => shutdown("SIGINT")); // Ctrl+C
-process.on("SIGTERM", () => shutdown("SIGTERM")); // e.g., Docker stop
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
 
+// ROUTES
 app.use("/auth_service/api/riders", ridersAuthRoute);
 app.use("/auth_service/api/vendors", vendorsAuthRoute);
 app.use("/marketplace_service/api/vendors", marketplaceRoute);
 app.use("/auth_service/api", logoutRoute);
-app.use("/auth_service/api/customers", customerRoute);
-app.use("/auth_service/api/vendors", customerRoutes);
+app.use("/auth_service/api/customers", customerRoutes);

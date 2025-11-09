@@ -96,14 +96,6 @@ class VendorsAuth {
   static async signin(req, res) {
     try {
       const { email, password } = req.body;
-<<<<<<< HEAD
-=======
-      // const vendorData = await VendorProfile.getProfile(email);
-      
-      const vendor = await vendorModel.findOne({
-        where: { email: email },
-      });
->>>>>>> 580536c31eaa2bf28a0c6ef7d6dc9e33b4c784af
 
       const vendor = await vendorModel.findOne({ where: { email } });
       if (!vendor) {
@@ -119,17 +111,10 @@ class VendorsAuth {
           .json({ success: false, message: "Incorrect email or password" });
       }
 
-<<<<<<< HEAD
       const { public_unique_Id, ...vendorData } = vendor.dataValues;
       delete vendorData.password;
       delete vendorData.id;
 
-=======
-      const { dataValues } = vendor;
-
-
-      const PUID = dataValues.public_unique_Id;
->>>>>>> 580536c31eaa2bf28a0c6ef7d6dc9e33b4c784af
       const accessToken = JWT.sign(
         { PUID: public_unique_Id },
         process.env.ACCESS_TOKEN_SECRET_KEY,
@@ -142,32 +127,10 @@ class VendorsAuth {
         sameSite: "none",
       });
 
-<<<<<<< HEAD
       return res.status(200).json({
         success: true,
         message: "Signin successful",
         data: vendorData,
-=======
-      // const refreshToken = JWT.sign({}, process.env.REFRESH_TOKEN_SECRET_KEY, {
-      //   expiresIn: "1d",
-      //   algorithm: "HS256",
-      // });
-
-      // const refreshTokenCookie = res.cookie("refreshToken", refreshToken, {
-      //   httpOnly: true,
-      //   secure: true,
-      //   sameSite: "none",
-      // });
-      console.log(dataValues, "datavalues");
-      const dataValuesCopy = { ...dataValues };
-      delete dataValuesCopy.password;
-      delete dataValuesCopy.id;
-      console.log(dataValuesCopy, "this is vendor data");
-      return res.status(200).json({
-        success: true,
-        message: "Signin successful",
-        data: dataValuesCopy,
->>>>>>> 580536c31eaa2bf28a0c6ef7d6dc9e33b4c784af
       });
     } catch (error) {
       return res.status(500).json({ error });
@@ -216,7 +179,7 @@ class VendorsAuth {
   // ---------------------- VALIDATE RESET TOKEN ----------------------
   static async validateResetToken(req, res) {
     const { token } = req.params;
-    console.log(token, "token")
+    console.log(token, "token");
     try {
       JWT.verify(token, process.env.FORGOT_PASSWORD_SECRET);
       return res.status(200).json({ valid: true, message: "Token is valid" });
@@ -285,7 +248,7 @@ class VendorsAuth {
     try {
       const passwordRegex =
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-        //check if password matches the constraint
+      //check if password matches the constraint
       if (!passwordRegex.test(newPassword)) {
         return res.status(400).json({
           success: false,
@@ -368,11 +331,9 @@ class VendorsAuth {
     }
   }
 
-    // -------------------------------------------------- CHANGE PASSWORD ------------------------------------------------------
+  // -------------------------------------------------- CHANGE PASSWORD ------------------------------------------------------
 
-    static async logout(req,res) {
-
-    }
+  static async logout(req, res) {}
 }
 
 export default VendorsAuth;
