@@ -1,11 +1,16 @@
 import db from "../sequelize/models/index.js";
 const Customer = db.customerModel;
+
 class CustomerController {
-  // create a new customer
   static async createCustomer(req, res) {
     try {
-      const { name, email, phone } = req.body;
-      const customer = await customerModel.create({ name, email, phone });
+      const { firstname, lastname, email, phone_number } = req.body;
+      const customer = await Customer.create({
+        firstname,
+        lastname,
+        email,
+        phone_number,
+      });
       return res.status(201).json({
         message: "Customer created successfully",
         customer,
@@ -16,11 +21,10 @@ class CustomerController {
     }
   }
 
-  // get all customers
   static async getCustomers(req, res) {
     try {
-      const customers = await customerModel.findAll({
-        attributes: { exclude: ["password"] }, // optional
+      const customers = await Customer.findAll({
+        attributes: { exclude: ["password"] },
       });
       return res.status(200).json(customers);
     } catch (err) {
@@ -29,16 +33,12 @@ class CustomerController {
     }
   }
 
-  // get a customer by ID
   static async getCustomerById(req, res) {
     try {
       const { id } = req.params;
-      const customer = await customerModel.findByPk(id);
-
-      if (!customer) {
+      const customer = await Customer.findByPk(id);
+      if (!customer)
         return res.status(404).json({ message: "Customer not found" });
-      }
-
       return res.status(200).json(customer);
     } catch (err) {
       console.error("Error fetching customer:", err);
@@ -46,18 +46,16 @@ class CustomerController {
     }
   }
 
-  // update a customer
   static async updateCustomer(req, res) {
     try {
       const { id } = req.params;
-      const { name, email, phone } = req.body;
+      const { firstname, lastname, email, phone_number } = req.body;
 
-      const customer = await customerModel.findByPk(id);
-      if (!customer) {
+      const customer = await Customer.findByPk(id);
+      if (!customer)
         return res.status(404).json({ message: "Customer not found" });
-      }
 
-      await customer.update({ name, email, phone });
+      await customer.update({ firstname, lastname, email, phone_number });
       return res.status(200).json({
         message: "Customer updated successfully",
         customer,
@@ -68,15 +66,12 @@ class CustomerController {
     }
   }
 
-  // delete a customer
   static async deleteCustomer(req, res) {
     try {
       const { id } = req.params;
-
-      const customer = await customerModel.findByPk(id);
-      if (!customer) {
+      const customer = await Customer.findByPk(id);
+      if (!customer)
         return res.status(404).json({ message: "Customer not found" });
-      }
 
       await customer.destroy();
       return res.status(200).json({ message: "Customer deleted successfully" });

@@ -1,22 +1,28 @@
-const { sequelize, riderModel } = require("../sequelize/models");
-const JWT = require("jsonwebtoken");
-const path = require("path");
-const multer = require("multer");
-const cloudinary = require("cloudinary").v2;
-const streamifier = require("streamifier");
-const responseHandler = require("../handlers/response.handler");
-const bcrypt = require("bcryptjs");
-const randomString = require("../helpers/randomString");
-const sendEmail = require("../config/mailer");
-require("dotenv").config();
-const fs = require("fs");
+import db from "../sequelize/models/index.js";
+const { sequelize, riderModel } = db;
+
+import JWT from "jsonwebtoken";
+import path from "path";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import streamifier from "streamifier";
+import responseHandler from "../handlers/response.handler.js";
+import bcrypt from "bcryptjs";
+import randomString from "../helpers/randomString.js";
+import sendEmail from "../config/mailer.js";
+import dotenv from "dotenv";
+import fs from "fs";
+
+dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
 const randomPassword = randomString();
+
 class RidersAuth {
   //signup handler
   static async signup(req, res) {
@@ -27,21 +33,6 @@ class RidersAuth {
         lastname,
         phone_number,
         email,
-        // password,
-        // date_of_birth,
-        // gender,
-        // country,
-        // state,
-        // method_of_delivery,
-        // resident_location,
-        // currently_working_with_another_logistics,
-        // NIN,
-        // bank_name,
-        // account_number,
-        // guarantor_1_name,
-        // guarantor_1_phone_number,
-        // guarantor_2_name,
-        // guarantor_2_phone_number,
         agreed_to_regular_updates,
         accepted_privacy_policy,
       } = req.body;
@@ -49,28 +40,13 @@ class RidersAuth {
       const hashedPassword = await bcrypt.hash(randomPassword, 12);
       const newRider = await riderModel.create(
         {
-          firstname: firstname,
-          lastname: lastname,
-          phone_number: phone_number,
-          email: email,
-          // date_of_birth: date_of_birth,
+          firstname,
+          lastname,
+          phone_number,
+          email,
           password: hashedPassword,
-          // gender: gender,
-          // country: country,
-          // state: state,
-          // method_of_delivery: method_of_delivery,
-          // current_location: resident_location,
-          // currently_working_with_another_logistics:
-          //   currently_working_with_another_logistics,
-          // NIN: NIN,
-          // bank_name: bank_name,
-          // account_number: account_number,
-          // guarantor_1_name: guarantor_1_name,
-          // guarantor_1_phone_number: guarantor_1_phone_number,
-          // guarantor_2_name: guarantor_2_name,
-          // guarantor_2_phone_number: guarantor_2_phone_number,
-          agreed_to_regular_updates: agreed_to_regular_updates,
-          accepted_privacy_policy: accepted_privacy_policy,
+          agreed_to_regular_updates,
+          accepted_privacy_policy,
         },
         { transaction: t }
       );
@@ -78,34 +54,30 @@ class RidersAuth {
       if (newRider) {
         const data = await riderModel.findOne({
           attributes: ["signup_upload_temp_id"],
-          where: { email: email },
+          where: { email },
           transaction: t,
         });
 
         if (data) {
           const tempId = data.signup_upload_temp_id;
           this.setCookieForImmediateUpload(req, res, tempId);
-          const message = `your password is ${randomPassword}`;
+          const message = `Your password is ${randomPassword}`;
           await sendEmail({
             receiverEmail: email,
             subject: "Email Verification",
-            message: message,
+            message,
           });
         }
       }
+
       await t.commit();
       return responseHandler.created(res);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       await t.rollback();
-      const validationType = error.errors.map((err) => err.type);
-      console.log(validationType[0], "this is type");
-      if (
-        error.name === "SequelizeValidationError" ||
-        validationType[0] === "Validation error"
-      ) {
+
+      if (error.name === "SequelizeValidationError") {
         const validationErrors = error.errors.map((err) => err.message);
-        console.log(validationErrors, "val errrorororororo");
         return res.status(400).json({
           SUCCESS: false,
           MESSAGE: validationErrors[0],
@@ -128,13 +100,13 @@ class RidersAuth {
         error: error.message,
       });
     }
-  } //end of signup
+  }
 
-  // multer setup for img upload
+  // multer setup
   static multerSetup() {
     return multer.memoryStorage({
       destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, "../../uploads"));
+        cb(null, path.join(process.cwd(), "uploads"));
       },
       filename: (req, file, cb) => {
         cb(null, `${Date.now()}${path.extname(file.originalname)}`);
@@ -142,16 +114,10 @@ class RidersAuth {
     });
   }
 
-  //image upload handler
+  // cloudinary upload handler
   static async uploadToCloudinaryAndDatabase(req, res) {
     try {
-      const files = req.files;
-      const arrFile = Array.from(Object.entries(files));
-      const cookie = req.cookies;
-      console.log(cookie, "FE cookie");
-      console.log(files, "files also");
-      console.log(req.body, "body also");
-      const tempId = cookie ? req.cookies.temp_Id : "";
+      const tempId = req.cookies?.temp_Id;
       const uploadPromises = [];
 
       for (const [fieldName, files] of Object.entries(req.files)) {
@@ -165,20 +131,18 @@ class RidersAuth {
                   public_id: `${fieldName}-${Date.now()}`,
                 },
                 (error, result) => {
-                  if (error) {
-                    reject(error);
-                  } else {
-                    resolve(result);
-                  }
+                  if (error) reject(error);
+                  else resolve(result);
                 }
               );
-              const stream = streamifier.createReadStream(file.buffer);
-              stream.pipe(uploadStream);
+              streamifier.createReadStream(file.buffer).pipe(uploadStream);
             })
           );
         });
       }
+
       const data = await Promise.all(uploadPromises);
+
       if (data && tempId) {
         const riderVehicle = data[0].public_id.includes("vehicle_image")
           ? data[0].secure_url
@@ -186,6 +150,7 @@ class RidersAuth {
         const riderModeOfId = data[1].public_id.includes("ID_image")
           ? data[1].secure_url
           : data[0].secure_url;
+
         await this.saveUploadURLToDb(tempId, riderVehicle, riderModeOfId, res);
       } else {
         return res
@@ -193,14 +158,13 @@ class RidersAuth {
           .json({ success: false, message: "Something went wrong" });
       }
     } catch (error) {
-      console.log(error, "coudinary error");
+      console.error("Cloudinary error:", error);
       return res
         .status(500)
-        .json({ success: false, message: "something went wrong" });
+        .json({ success: false, message: "Something went wrong" });
     }
   }
 
-  //function to save cloudinary url to database
   static async saveUploadURLToDb(tempId, vehicleImg, modeOfIdImg, res) {
     const t = await sequelize.transaction();
     try {
@@ -208,16 +172,12 @@ class RidersAuth {
         where: { signup_upload_temp_id: tempId },
         transaction: t,
       });
-      const newData = {
-        mode_of_identification_img: modeOfIdImg,
-        vehicle_img: vehicleImg,
-      };
+
       if (data) {
-        const saveURLToDb = await riderModel.update(newData, {
-          where: { signup_upload_temp_id: tempId },
-          transaction: t,
-        });
-        this.deleteSignupTempIdFromDB(tempId);
+        await riderModel.update(
+          { mode_of_identification_img: modeOfIdImg, vehicle_img: vehicleImg },
+          { where: { signup_upload_temp_id: tempId }, transaction: t }
+        );
       }
 
       await t.commit();
@@ -226,129 +186,101 @@ class RidersAuth {
         .status(201)
         .json({ success: true, message: "Operation Successful" });
     } catch (error) {
-      console.log("from saveUpload blah blah");
+      console.error(error);
       await t.rollback();
       return responseHandler.serverError(res);
     }
   }
 
-  //cookie setter
   static setCookieForImmediateUpload(req, res, tempId) {
-    try {
-      const cookie = res.cookie("temp_Id", tempId, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      });
-    } catch (err) {
-      console.log(err, "error");
-    }
+    res.cookie("temp_Id", tempId, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
   }
 
-  // static async deleteSignupTempIdFromDB(tempId) {
-  //   try {
-  //     const newData = {
-  //       signup_upload_temp_id: null,
-  //     };
-  //     const deleteTempId = await riderModel.update(newData, {
-  //       where: { signup_upload_temp_id: tempId },
-  //     });
-  //     console.log(deleteTempId);
-  //   } catch (err) {
-  //     return;
-  //   }
-  // }
-
+  // signin
   static async signin(req, res) {
-
-    
     try {
       const { email, password } = req.body;
+      const rider = await riderModel.findOne({ where: { email } });
 
-      const rider = await riderModel.findOne({
-        attributes: ["password"],
-        where: { email: email },
-      });
-      console.log(rider, "rider")
       if (!rider) {
         return responseHandler.notfound(res, "Incorrect Email or Password");
       }
 
-      const valid = await bcrypt.compare(password, rider.dataValues.password);
-
+      const valid = await bcrypt.compare(password, rider.password);
       if (!valid) {
         return responseHandler.notfound(res, "Incorrect Email or Password");
       }
 
       const accessToken = JWT.sign(
-        { PUID: rider.public_unique_id },
+        { PUID: rider.public_unique_Id },
         process.env.ACCESS_TOKEN_SECRET_KEY,
         { algorithm: "HS256", expiresIn: "15m" }
       );
+
       const refreshToken = JWT.sign({}, process.env.REFRESH_TOKEN_SECRET_KEY, {
-        expiresIn: "1d",
         algorithm: "HS256",
+        expiresIn: "1d",
       });
 
-      const accessTokenCookie = res.cookie("accessToken", accessToken, {
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+      res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: "none",
       });
 
-      const refreshTokenCookie = res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      });
-
-      return res.status(200).json({ success: "true" });
+      return res.status(200).json({ success: true });
     } catch (error) {
-      console.log(error, "error")
+      console.error(error);
       return res.status(500).json({ error });
-      
     }
   }
 
+  // forgot password
   static async forgotPassword(req, res) {
     try {
       const { email } = req.body;
-      const user = await riderModel.findOne({
-        where: { email: email },
-      });
-      console.log(user, "user");
-      if (user) {
-        const emailToken = JWT.sign(
-          { email },
-          process.env.FORGOT_PASSWORD_SECRET,
-          {
-            expiresIn: "10m",
-            algorithm: "HS256",
-          }
-        );
-        const message = `Follow the link to reset your password. This link is valid for 10 minutes \n
-        ${process.env.CLIENT_FRONTEND_URL}/client/rider/reset_password/${emailToken} \n 
-        If you did not make a password reset request, please ignore this email`;
+      const user = await riderModel.findOne({ where: { email } });
 
-        await sendEmail({
-          receiverEmail: email,
-          subject: "Email Verification",
-          message: message,
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          message: "Email not associated with any account",
         });
-        return res.status(200).json({ success: true, message: "Email sent" });
-      } else if (user === null) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message:
-              "Email is not associated with an account, enter a correct email",
-          });
       }
-    } catch (err) {
-      console.log(err, "err");
 
-      return res.status(500).json("something went wrong");
+      const emailToken = JWT.sign(
+        { email },
+        process.env.FORGOT_PASSWORD_SECRET,
+        {
+          expiresIn: "10m",
+          algorithm: "HS256",
+        }
+      );
+
+      const message = `Follow the link to reset your password. Valid for 10 minutes:
+      ${process.env.CLIENT_FRONTEND_URL}/client/rider/reset_password/${emailToken}`;
+
+      await sendEmail({
+        receiverEmail: email,
+        subject: "Password Reset",
+        message,
+      });
+
+      return res.status(200).json({ success: true, message: "Email sent" });
+    } catch (err) {
+      console.error(err);
+      return res
+        .status(500)
+        .json({ success: false, message: "Something went wrong" });
     }
   }
 
@@ -359,16 +291,14 @@ class RidersAuth {
         token,
         process.env.FORGOT_PASSWORD_SECRET
       );
-
-      if (isTokenValid) {
-        return res.status(200).json({ valid: true, message: "token is valid" });
-      }
+      return res.status(200).json({ valid: true, message: "Token is valid" });
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        res.status(401).json({ valid: false, message: "Token has expired" });
-      } else {
-        res.status(400).json({ valid: false, message: "Invalid token" });
+        return res
+          .status(401)
+          .json({ valid: false, message: "Token has expired" });
       }
+      return res.status(400).json({ valid: false, message: "Invalid token" });
     }
   }
 
@@ -377,41 +307,32 @@ class RidersAuth {
     const token = req.params.token;
     const { email } = JWT.verify(token, process.env.FORGOT_PASSWORD_SECRET);
     const { newPassword, confirmPassword } = req.body;
-    
+
     try {
-      if (newPassword === confirmPassword) {
-        const hashedPassword = await bcrypt.hash(newPassword, 12)
-        const updatePassword = await riderModel.update(
-          { password: hashedPassword},
-          {
-            where: { email: email },
-            transaction: t,
-          }
-        );
-      } else return res.status(400).json({success:false, message: "passwords do not match"})
+      if (newPassword !== confirmPassword) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Passwords do not match" });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+      await riderModel.update(
+        { password: hashedPassword },
+        { where: { email }, transaction: t }
+      );
 
       await t.commit();
-      return res.status(200).json({success:true, message:"Password change successful"})
+      return res
+        .status(200)
+        .json({ success: true, message: "Password change successful" });
     } catch (error) {
       await t.rollback();
-      console.log(error, "error")
-
-      return res.status(500).json({success:false, message:"Password change unsuccessful"})
+      console.error(error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Password change unsuccessful" });
     }
   }
-
-  // static async getNewRefreshToken(res) {
-  //   const refreshToken = JWT.sign({}, process.env.REFRESH_TOKEN_SECRET_KEY, {
-  //     expiresIn: "1d",
-  //     algorithm: "HS256",
-  //   });
-
-  //   const cookie = res.cookie("refreshToken", refreshToken, {
-  //     httpOnly: true,
-  //     secure: true,
-  //     sameSite: "none",
-  //   });
-  // }
 }
 
-module.exports = RidersAuth;
+export default RidersAuth;

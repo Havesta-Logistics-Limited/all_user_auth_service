@@ -1,11 +1,9 @@
-"use strict";
-const { v4: uuidv4 } = require("uuid");
-const genRandomString = require("../../helpers/genString");
+import { v4 as uuidv4 } from "uuid";
+import genRandomString from "../../helpers/genString.js";
+import { Model } from "sequelize";
 
-const { Model } = require("sequelize");
-
-module.exports = (sequelize, DataTypes) => {
-  class customerModel extends Model {
+export default (sequelize, DataTypes) => {
+  class Customer extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -19,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
   const PHONE_NUM_MIN_DIGITS = 11;
   const PHONE_NUM_MAX_DIGITS = 11;
 
-  customerModel.init(
+  Customer.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -168,12 +166,12 @@ module.exports = (sequelize, DataTypes) => {
 
     {
       sequelize,
-      modelName: "customerModel",
+      modelName: "Customer",
       tableName: "customers_profile",
       timestamps: true,
       indexes: [{ unique: true, fields: ["public_unique_Id", "email"] }],
     }
   );
 
-  return customerModel;
+  return Customer;
 };

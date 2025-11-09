@@ -1,12 +1,8 @@
-const express = require("express");
-
-const Marketplace = require("../controllers/marketplace.controller")
-
-
+import express from "express";
+import Marketplace from "../controllers/marketplace.controller.js";
 
 const router = express.Router();
 
-router.get("/get_all_vendors", (req,res)=>Marketplace.getVendors(req,res))
-//  Marketplace.getVendors(req,res)
+router.get("/get_all_vendors", (req, res) => Marketplace.getVendors(req, res));
 
-module.exports = router;
+export default router;
