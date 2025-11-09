@@ -141,7 +141,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "customerModel",
-      tableName: "customer_profile",
+      tableName: "customer_model",
     }
   );
   return customerModel;
