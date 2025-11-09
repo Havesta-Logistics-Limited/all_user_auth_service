@@ -13,7 +13,7 @@ const marketplaceRoute = require("./src/routes/marketplace.routes")
 const logoutRoute = require("./src/routes/logout.routes")
 const customerRoute = require("./src/routes/customerAuth.routes")
 const helmet = require("helmet");
-const googlePassport = require("./src/controllers/customerAuth/googleAuth/googleStrategy")
+// const googlePassport = require("./src/controllers/customerAuth/googleAuth/googleStrategy")
 
 app.use(
   cors({
@@ -38,7 +38,7 @@ app.use(cookieParser());
 app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
-app.use(googlePassport.initialize());
+// app.use(googlePassport.initialize());
 
 const port = process.env.PORT || 4040;
 
