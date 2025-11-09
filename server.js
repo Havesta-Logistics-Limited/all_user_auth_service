@@ -16,6 +16,19 @@ import marketplaceRoute from "./src/routes/marketplace.routes.js";
 
 dotenv.config();
 const app = express();
+const { sequelize } = require("./src/sequelize/models");
+const db_config = require("./src/sequelize/config/config");
+const cors = require("cors");
+const colors = require("colors");
+const cookieParser = require("cookie-parser");
+const ridersAuthRoute = require("./src/routes/ridersAuth.routes");
+const vendorsAuthRoute = require("./src/routes/vendorsAuth.routes");
+const marketplaceRoute = require("./src/routes/marketplace.routes");
+const logoutRoute = require("./src/routes/logout.routes");
+const customerRoute = require("./src/routes/customerAuth.routes");
+const helmet = require("helmet");
+// const googlePassport = require("./src/controllers/customerAuth/googleAuth/googleStrategy")
+
 app.use(
   cors({
     origin: [
@@ -36,6 +49,7 @@ app.use(cookieParser());
 app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
+// app.use(googlePassport.initialize());
 
 const port = process.env.PORT || 4040;
 
@@ -76,4 +90,6 @@ process.on("SIGTERM", () => shutdown("SIGTERM")); // e.g., Docker stop
 app.use("/auth_service/api/riders", ridersAuthRoute);
 app.use("/auth_service/api/vendors", vendorsAuthRoute);
 app.use("/marketplace_service/api/vendors", marketplaceRoute);
+app.use("/auth_service/api", logoutRoute);
+app.use("/auth_service/api/customers", customerRoute);
 app.use("/auth_service/api/vendors", customerRoutes);
