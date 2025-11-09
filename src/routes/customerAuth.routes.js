@@ -10,7 +10,12 @@ const VendorProfile = require("../controllers/getVendorProfile.Controller");
 
 const router = express.Router();
 
-router.get("/auth/google", () => CustomerAuth.googleAuth());
+router.post("/auth/google", () => CustomerAuth.googleAuth());
+router.post("/auth/signup", (req,res) => CustomerAuth.signup(req,res));
+router.post("/auth/signin", (req,res) => CustomerAuth.signin(req,res));
+router.post("/auth/get_access_token", (req,res) => CustomerAuth.signin(req,res));
+
+
 
 
 
