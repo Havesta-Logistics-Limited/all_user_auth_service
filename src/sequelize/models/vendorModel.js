@@ -1,22 +1,18 @@
-"use strict";
-const { v4: uuidv4 } = require("uuid");
-const genRandomString = require("../../helpers/genString");
+import { v4 as uuidv4 } from "uuid";
+import genRandomString from "../../helpers/genString.js";
+import { Model, DataTypes } from "sequelize";
 
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class vendorModel extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
+const PHONE_NUM_MIN_DIGITS = 11;
+const PHONE_NUM_MAX_DIGITS = 11;
+
+export default (sequelize) => {
+  class VendorModel extends Model {
     static associate(models) {
-      // define association here
+      // define associations here
     }
   }
-  const PHONE_NUM_MIN_DIGITS = 11;
-  const PHONE_NUM_MAX_DIGITS = 11;
-  vendorModel.init(
+
+  VendorModel.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -32,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       phone_number: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: false,
         unique: {
           args: true,
@@ -46,9 +42,7 @@ module.exports = (sequelize, DataTypes) => {
                 length < PHONE_NUM_MIN_DIGITS ||
                 length > PHONE_NUM_MAX_DIGITS
               ) {
-                throw new Error(
-                  `Phone number must have no more than 11 numbers.`
-                );
+                throw new Error(`Phone number must be 11 digits`);
               }
             }
           },
@@ -67,24 +61,22 @@ module.exports = (sequelize, DataTypes) => {
           },
         },
       },
-
       password: {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
-          len: [8, 100], // Ensure password is between 8 and 100 characters
+          len: [8, 100],
           isStrongPassword(value) {
-            if (value) {
-              if (
-                !/[a-z]/.test(value) ||
+            if (
+              value &&
+              (!/[a-z]/.test(value) ||
                 !/[A-Z]/.test(value) ||
                 !/[0-9]/.test(value) ||
-                !/[^a-zA-Z0-9]/.test(value)
-              ) {
-                throw new Error(
-                  "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character."
-                );
-              }
+                !/[^a-zA-Z0-9]/.test(value))
+            ) {
+              throw new Error(
+                "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character."
+              );
             }
           },
         },
@@ -107,20 +99,6 @@ module.exports = (sequelize, DataTypes) => {
               }
             }
           },
-
-          // notOldEnough(value) {
-          //   if (value) {
-          //     const enteredDate = new Date(value)
-          //     const enteredYear = enteredDate.getFullYear()
-          //     const today = new Date();
-          //     const ageCutoff = new Date(
-          //       today.setFullYear(today.getFullYear() - 18)
-          //     );
-          //     if (enteredYear > ageCutoff) {
-          //       throw new Error("You must be at least 18 years old");
-          //     }
-          //   }
-          // },
         },
         defaultValue: null,
       },
@@ -151,7 +129,7 @@ module.exports = (sequelize, DataTypes) => {
       signup_upload_temp_id: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: null,
+        defaultValue: () => genRandomString(6),
       },
       public_unique_Id: {
         type: DataTypes.STRING,
@@ -160,6 +138,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       agreed_to_regular_updates: {
         type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
       accepted_privacy_policy: {
         type: DataTypes.BOOLEAN,
@@ -172,5 +151,6 @@ module.exports = (sequelize, DataTypes) => {
       tableName: "vendors_profile",
     }
   );
-  return vendorModel;
+
+  return VendorModel;
 };

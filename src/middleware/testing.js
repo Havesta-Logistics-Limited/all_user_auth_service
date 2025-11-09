@@ -1,6 +1,6 @@
-const testing = (req,res,next) => {
-    console.log("testing middleware")
-    next();
-}
+const testing = (req, res, next) => {
+  console.log("testing middleware");
+  next();
+};
 
-module.exports = testing;
+export default testing;

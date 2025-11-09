@@ -1,20 +1,13 @@
-require("dotenv").config();
-
-const nodemailer = require("nodemailer");
+import "dotenv/config";
+import nodemailer from "nodemailer";
 
 const sendEmail = async (options) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
-    // host: "smtp.gmail.com",
-    // port: 465,
-    // secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    // tls: {
-    //   rejectUnauthorized: false,
-    // },
   });
 
   const message = {
@@ -22,12 +15,12 @@ const sendEmail = async (options) => {
     to: options.receiverEmail,
     subject: options.subject,
     text: options.message,
-    html: options.html ? options.html : null,
+    html: options.html || null,
   };
 
   try {
     const info = await transporter.sendMail(message);
-    console.log("Message sent: %s", info.messageId.blue);
+    console.log("Message sent: %s", info.messageId);
     return true;
   } catch (err) {
     console.log(err, "Error sending email");
@@ -35,4 +28,4 @@ const sendEmail = async (options) => {
   }
 };
 
-module.exports = sendEmail
+export default sendEmail;

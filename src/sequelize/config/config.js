@@ -1,26 +1,25 @@
-require('dotenv').config();
+import "dotenv/config";
 
-// console.log(process.env.DB_HOST)
-module.exports = {
+const config = {
   development: {
     username: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    host: process.env.DB_HOST || '127.0.0.1',
+    host: process.env.DB_HOST || "127.0.0.1",
     port: process.env.DB_PORT,
     dialect: "postgres",
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     },
-    pool:{
-      max:20,
-      min:5,
-      idle:10000,
-      acquire:30000
-    }
+    pool: {
+      max: 20,
+      min: 5,
+      idle: 10000,
+      acquire: 30000,
+    },
   },
   // test: {
   //   username: process.env.DB_USER || "root",
@@ -33,7 +32,7 @@ module.exports = {
   //     ssl: {
   //       require: false,
   //     }
-  
+
   //   }
   // },
   // production: {
@@ -47,7 +46,9 @@ module.exports = {
   //     ssl: {
   //       require: false,
   //     }
-  
+
   //   }
   // }
-}
+};
+
+export default config;

@@ -17,4 +17,4 @@ const generateString = (
   }
   return result + "-" + Date.now();
 };
-module.exports = generateString;
+export default generateString;

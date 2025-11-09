@@ -1,22 +1,20 @@
-"use strict";
-const { v4: uuidv4 } = require("uuid");
-const genRandomString = require("../../helpers/genString");
+import { v4 as uuidv4 } from "uuid";
+import genRandomString from "../../helpers/genString.js";
+import { Model, DataTypes } from "sequelize";
 
-const { Model } = require("sequelize");
-module.exports = (sequelize, DataTypes) => {
-  class riderModel extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
+const PHONE_NUM_MIN_DIGITS = 11;
+const PHONE_NUM_MAX_DIGITS = 11;
+const NIN_LENGTH = 12;
+const ACCOUNT_NUM_LENGTH = 10;
+
+export default (sequelize) => {
+  class RiderModel extends Model {
     static associate(models) {
-      // define association here
+      // define associations here if needed
     }
   }
-  const PHONE_NUM_MIN_DIGITS = 11;
-  const PHONE_NUM_MAX_DIGITS = 11;
-  riderModel.init(
+
+  RiderModel.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -32,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       phone_number: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: false,
         unique: {
           args: true,
@@ -46,9 +44,7 @@ module.exports = (sequelize, DataTypes) => {
                 length < PHONE_NUM_MIN_DIGITS ||
                 length > PHONE_NUM_MAX_DIGITS
               ) {
-                throw new Error(
-                  `Phone number must have no more than 11 numbers.`
-                );
+                throw new Error(`Phone number must be 11 digits`);
               }
             }
           },
@@ -67,30 +63,27 @@ module.exports = (sequelize, DataTypes) => {
           },
         },
       },
-
       password: {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
-          len: [8, 100], // Ensure password is between 8 and 100 characters
+          len: [8, 100],
           isStrongPassword(value) {
-            if (value) {
-              if (
-                !/[a-z]/.test(value) ||
+            if (
+              value &&
+              (!/[a-z]/.test(value) ||
                 !/[A-Z]/.test(value) ||
                 !/[0-9]/.test(value) ||
-                !/[^a-zA-Z0-9]/.test(value)
-              ) {
-                throw new Error(
-                  "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character."
-                );
-              }
+                !/[^a-zA-Z0-9]/.test(value))
+            ) {
+              throw new Error(
+                "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character."
+              );
             }
           },
         },
         defaultValue: null,
       },
-
       date_of_birth: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -104,20 +97,6 @@ module.exports = (sequelize, DataTypes) => {
               }
             }
           },
-
-          // notOldEnough(value) {
-          //   if (value) {
-          //     const enteredDate = new Date(value)
-          //     const enteredYear = enteredDate.getFullYear()
-          //     const today = new Date();
-          //     const ageCutoff = new Date(
-          //       today.setFullYear(today.getFullYear() - 18)
-          //     );
-          //     if (enteredYear > ageCutoff) {
-          //       throw new Error("You must be at least 18 years old");
-          //     }
-          //   }
-          // },
         },
         defaultValue: null,
       },
@@ -152,14 +131,13 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: null,
       },
       NIN: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: true,
         defaultValue: null,
         validate: {
           isCorrectLength(value) {
             if (value) {
-              const length = value.toString().length;
-              if (length != NIN_LENGTH) {
+              if (value.toString().length !== NIN_LENGTH) {
                 throw new Error("NIN should be 12 digits");
               }
             }
@@ -172,18 +150,13 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: null,
       },
       account_number: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: true,
         defaultValue: null,
         validate: {
           isCorrectLength(value) {
-            if (value) {
-              const length = value.toString().length;
-              if (length != ACCOUNT_NUM_LENGTH) {
-                throw new Error(
-                  `Account number must not be more or less than 10 digits.`
-                );
-              }
+            if (value && value.toString().length !== ACCOUNT_NUM_LENGTH) {
+              throw new Error("Account number must be exactly 10 digits");
             }
           },
         },
@@ -194,21 +167,17 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: null,
       },
       guarantor_1_phone_number: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: true,
         defaultValue: null,
         validate: {
           isCorrectLength(value) {
-            if (value) {
-              const length = value.toString().length;
-              if (
-                length < PHONE_NUM_MIN_DIGITS ||
-                length > PHONE_NUM_MAX_DIGITS
-              ) {
-                throw new Error(
-                  `Phone number must have no more than 11 digits.`
-                );
-              }
+            if (
+              value &&
+              (value.toString().length < PHONE_NUM_MIN_DIGITS ||
+                value.toString().length > PHONE_NUM_MAX_DIGITS)
+            ) {
+              throw new Error("Phone number must be 11 digits");
             }
           },
         },
@@ -218,23 +187,18 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: null,
       },
-
       guarantor_2_phone_number: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         allowNull: true,
         defaultValue: null,
         validate: {
           isCorrectLength(value) {
-            if (value) {
-              const length = value.toString().length;
-              if (
-                length < PHONE_NUM_MIN_DIGITS ||
-                length > PHONE_NUM_MAX_DIGITS
-              ) {
-                throw new Error(
-                  `Phone number must have no more than 11 digits`
-                );
-              }
+            if (
+              value &&
+              (value.toString().length < PHONE_NUM_MIN_DIGITS ||
+                value.toString().length > PHONE_NUM_MAX_DIGITS)
+            ) {
+              throw new Error("Phone number must be 11 digits");
             }
           },
         },
@@ -247,18 +211,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
-      // is_account_verified: {
-      //   type: DataTypes.BOOLEAN,
-      //   defaultValue: false,
-      //   allowNull:false
-      // },
-
       is_activated_by_admin: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
-        allowNull:false
+        allowNull: false,
       },
-
       profile_photo: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -274,11 +231,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: null,
       },
-
       signup_upload_temp_id: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: genRandomString(6),
+        defaultValue: () => genRandomString(6),
       },
       public_unique_Id: {
         type: DataTypes.STRING,
@@ -286,12 +242,12 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: () => uuidv4(),
       },
     },
-
     {
       sequelize,
       modelName: "riderModel",
       tableName: "riders_profile",
     }
   );
-  return riderModel;
+
+  return RiderModel;
 };

@@ -10,7 +10,6 @@ const responseHandler = {
     res.status(200).json({
       status: "success",
       data: data,
-      // dataCount: count,
     });
   },
 
@@ -54,12 +53,13 @@ const responseHandler = {
       message,
     });
   },
+
   serverError: (res) => {
     res.status(500).json({
-      status:"failure",
-      message:"Something went wrong"
-    })
-  }
+      status: "failure",
+      message: "Something went wrong",
+    });
+  },
 };
 
-module.exports =  responseHandler ;
+export default responseHandler;
