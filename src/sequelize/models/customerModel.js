@@ -5,7 +5,11 @@ import { Model } from "sequelize";
 export default (sequelize, DataTypes) => {
   class Customer extends Model {
     static associate(models) {
-      // define associations here (if needed)
+      // One customer can have many orders
+      Customer.hasMany(models.Order, {
+        foreignKey: "customer_id",
+        as: "orders",
+      });
     }
   }
 
@@ -14,11 +18,7 @@ export default (sequelize, DataTypes) => {
 
   Customer.init(
     {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-      },
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       firstname: { type: DataTypes.STRING, allowNull: false },
       lastname: { type: DataTypes.STRING, allowNull: false },
       email: {
