@@ -1,10 +1,9 @@
-// logout.controller.js
-const logout = (req, res) => {
+export const logout = (req, res) => {
   try {
     res.clearCookie("accessToken", {
-       httpOnly: false,
-        secure: true,
-        sameSite: "none",
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
     });
     return res.status(200).json({
       success: true,
@@ -18,5 +17,3 @@ const logout = (req, res) => {
     });
   }
 };
-
-module.exports = {logout}

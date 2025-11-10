@@ -1,5 +1,5 @@
 import db from "../sequelize/models/index.js";
-const Customer = db.customerModel;
+const { Customer } = db;
 
 class CustomerController {
   static async createCustomer(req, res) {
@@ -11,13 +11,14 @@ class CustomerController {
         email,
         phone_number,
       });
-      return res.status(201).json({
+      res.status(201).json({
+        success: true,
         message: "Customer created successfully",
         customer,
       });
     } catch (err) {
       console.error("Error creating customer:", err);
-      return res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 
@@ -26,10 +27,10 @@ class CustomerController {
       const customers = await Customer.findAll({
         attributes: { exclude: ["password"] },
       });
-      return res.status(200).json(customers);
+      res.status(200).json(customers);
     } catch (err) {
       console.error("Error fetching customers:", err);
-      return res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 
@@ -39,10 +40,10 @@ class CustomerController {
       const customer = await Customer.findByPk(id);
       if (!customer)
         return res.status(404).json({ message: "Customer not found" });
-      return res.status(200).json(customer);
+      res.status(200).json(customer);
     } catch (err) {
       console.error("Error fetching customer:", err);
-      return res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 
@@ -50,19 +51,22 @@ class CustomerController {
     try {
       const { id } = req.params;
       const { firstname, lastname, email, phone_number } = req.body;
-
       const customer = await Customer.findByPk(id);
       if (!customer)
         return res.status(404).json({ message: "Customer not found" });
+      if (!req.body || Object.keys(req.body).length === 0) {
+        return res.status(400).json({ message: "No data provided for update" });
+      }
 
       await customer.update({ firstname, lastname, email, phone_number });
-      return res.status(200).json({
+      res.status(200).json({
+        success: true,
         message: "Customer updated successfully",
         customer,
       });
     } catch (err) {
       console.error("Error updating customer:", err);
-      return res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 
@@ -74,10 +78,12 @@ class CustomerController {
         return res.status(404).json({ message: "Customer not found" });
 
       await customer.destroy();
-      return res.status(200).json({ message: "Customer deleted successfully" });
+      res
+        .status(200)
+        .json({ success: true, message: "Customer deleted successfully" });
     } catch (err) {
       console.error("Error deleting customer:", err);
-      return res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 }
