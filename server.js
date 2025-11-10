@@ -16,6 +16,7 @@ import customerRoutes from "./src/routes/customer.routes.js";
 import ridersAuthRoute from "./src/routes/ridersAuth.routes.js";
 import vendorsAuthRoute from "./src/routes/vendorsAuth.routes.js";
 import marketplaceRoute from "./src/routes/marketplace.routes.js";
+import employeeRoutes from "./src/routes/employee.route.js";
 import logoutRoute from "./src/routes/logout.routes.js";
 
 const app = express();
@@ -75,3 +76,4 @@ app.use("/auth_service/api/vendors", vendorsAuthRoute);
 app.use("/marketplace_service/api/vendors", marketplaceRoute);
 app.use("/auth_service/api", logoutRoute);
 app.use("/auth_service/api/customers", customerRoutes);
+app.use("/auth_service/api/employees", employeeRoutes);
