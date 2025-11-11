@@ -20,6 +20,7 @@ import employeeRoutes from "./src/routes/employee.route.js";
 import orderRoutes from "./src/routes/order.routes.js";
 import logoutRoute from "./src/routes/logout.routes.js";
 import productRoute from "./src/routes/product.routes.js";
+import authRoute from "./src/routes/auth.routes.js";
 
 const app = express();
 
@@ -81,3 +82,4 @@ app.use("/auth_service/api/customers", customerRoutes);
 app.use("/auth_service/api/employees", employeeRoutes);
 app.use("/auth_service/api/orders", orderRoutes);
 app.use("/auth_service/api/products", productRoute);
+app.use("/auth_service/api/auth", authRoute);

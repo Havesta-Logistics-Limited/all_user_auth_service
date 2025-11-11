@@ -1,5 +1,5 @@
 import models from "../sequelize/models/index.js";
-const { Order, Customer, Product } = models;
+const { Order } = models;
 
 class OrderController {
   // Create a new order
